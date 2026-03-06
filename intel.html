@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RuralNidhi NBFC — Working with AI Strategy Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0F2140;
+    --blue: #1B4F8A;
+    --sky: #2E86C1;
+    --teal: #17A589;
+    --amber: #D4AC0D;
+    --orange: #E67E22;
+    --red: #C0392B;
+    --green: #27AE60;
+    --light: #EBF5FB;
+    --offwhite: #F5F7FA;
+    --mid: #8899AA;
+    --border: rgba(15,33,64,0.1);
+    --card: #FFFFFF;
+    --shadow: 0 2px 20px rgba(15,33,64,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--offwhite);
+    color: var(--navy);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--navy);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 3px solid var(--sky);
+  }
+  .header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-pill {
+    background: var(--sky);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .header-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: #fff;
+    line-height: 1.2;
+  }
+  .header-title span { color: #7FC8EE; }
+  .header-meta {
+    font-size: 12px;
+    color: #8BBCDA;
+    display: flex;
+    gap: 16px;
+  }
+  .header-meta b { color: #fff; }
+
+  /* ── NAV TABS ── */
+  .nav-wrap {
+    background: var(--navy);
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .nav-tabs {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    font-size: 13px;
+    font-weight: 500;
+    color: #8BBCDA;
+    padding: 12px 20px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+  }
+  .nav-tab:hover { color: #fff; }
+  .nav-tab.active {
+    color: #fff;
+    border-bottom-color: var(--teal);
+  }
+
+  /* ── MAIN ── */
+  .main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px;
+  }
+
+  /* ── SECTION ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── KPIS ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .kpi-card {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--sky);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); }
+  .kpi-card.green { border-left-color: var(--teal); }
+  .kpi-card.amber { border-left-color: var(--amber); }
+  .kpi-card.red { border-left-color: var(--red); }
+  .kpi-card.orange { border-left-color: var(--orange); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: var(--mid); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .kpi-value { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--navy); line-height: 1; }
+  .kpi-sub { font-size: 11px; color: var(--mid); margin-top: 4px; }
+  .kpi-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-top: 6px;
+  }
+  .badge-red { background: #FDECEA; color: var(--red); }
+  .badge-green { background: #E8F8F0; color: var(--green); }
+  .badge-amber { background: #FEF9E7; color: #9A6D00; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+  }
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .card-sub {
+    font-size: 12px;
+    color: var(--mid);
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+  @media(max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ── SCENARIO TOGGLE ── */
+  .scenario-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .scenario-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 2px solid var(--border);
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .scenario-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+  /* ── CHART CONTAINER ── */
+  .chart-wrap { position: relative; height: 300px; }
+  .chart-wrap.tall { height: 360px; }
+  .chart-wrap.radar { height: 380px; }
+
+  /* ── FORCES TABLE ── */
+  .force-row {
+    display: grid;
+    grid-template-columns: 180px 1fr 90px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .force-row:last-child { border-bottom: none; }
+  .force-name { font-weight: 600; font-size: 13px; }
+  .force-bar-wrap { background: #EDF2F7; border-radius: 4px; height: 10px; overflow: hidden; }
+  .force-bar { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+  .force-score { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; text-align: right; }
+
+  /* ── VRIO HEATMAP ── */
+  .vrio-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+  .vrio-table th {
+    background: var(--navy);
+    color: #fff;
+    padding: 10px 14px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  .vrio-table th:first-child { text-align: left; border-radius: 8px 0 0 0; }
+  .vrio-table th:last-child { border-radius: 0 8px 0 0; }
+  .vrio-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+  .vrio-table td:first-child { text-align: left; font-weight: 600; font-size: 12px; }
+  .vrio-table td:last-child { text-align: left; font-size: 11px; color: var(--mid); font-style: italic; }
+  .vrio-table tr:hover td { background: var(--offwhite); }
+  .cell-yes { background: #D5F5E3; color: #1A6B3C; font-weight: 700; border-radius: 4px; padding: 3px 10px; display: inline-block; font-size: 12px; }
+  .cell-partial { background: #FEF9E7; color: #9A6D00; font-weight: 700; border-radius: 4px; padding: 3px 10px; display: inline-block; font-size: 12px; }
+  .cell-no { background: #FDECEA; color: #922B21; font-weight: 700; border-radius: 4px; padding: 3px 10px; display: inline-block; font-size: 12px; }
+  .ai-note { font-size: 11px; color: var(--orange); font-weight: 600; }
+
+  /* ── OPTIONS MATRIX ── */
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 4px;
+  }
+  .option-card {
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+    transition: all 0.2s;
+  }
+  .option-card.selected { border-color: var(--teal); background: #EAFAF1; }
+  .option-card.rejected { border-color: #EAECEE; opacity: 0.7; }
+  .option-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: var(--mid); margin-bottom: 6px; }
+  .option-name { font-weight: 600; font-size: 14px; color: var(--navy); margin-bottom: 10px; }
+  .option-scores { display: flex; gap: 12px; font-size: 12px; }
+  .score-item { display: flex; flex-direction: column; align-items: center; }
+  .score-num { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--sky); line-height: 1; }
+  .score-lbl { color: var(--mid); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .option-status {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+  .status-sel { background: var(--teal); color: #fff; }
+  .status-rej { background: #EAECEE; color: var(--mid); }
+
+  /* ── GANTT ── */
+  .gantt-wrap { overflow-x: auto; }
+  .gantt-table { min-width: 900px; width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
+  .gantt-header th {
+    text-align: center;
+    padding: 6px 4px;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--mid);
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+    min-width: 40px;
+  }
+  .gantt-header th:first-child { text-align: left; min-width: 200px; padding-left: 8px; }
+  .gantt-row td { padding: 5px 4px; border-bottom: 1px solid var(--border); }
+  .gantt-row td:first-child { font-size: 12px; font-weight: 500; padding-left: 8px; white-space: nowrap; }
+  .gantt-row:hover td { background: var(--offwhite); }
+  .gantt-bar {
+    height: 22px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 6px;
+    animation: growBar 0.6s ease forwards;
+    transform-origin: left;
+  }
+  @keyframes growBar {
+    from { transform: scaleX(0); opacity: 0; }
+    to { transform: scaleX(1); opacity: 1; }
+  }
+  .phase-label {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 8px 8px 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .phase-gate {
+    background: #FFF9E6;
+    border: 1px dashed var(--amber);
+    border-radius: 4px;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: #9A6D00;
+    padding: 2px 4px;
+    white-space: nowrap;
+  }
+
+  /* ── LOGBOOK ── */
+  .logbook-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .log-entry {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .log-entry:hover { box-shadow: 0 4px 20px rgba(15,33,64,0.1); }
+  .log-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    background: #fff;
+    user-select: none;
+  }
+  .log-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--navy);
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .log-tool-pill {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .pill-perplexity { background: #EEF2FF; color: #3730A3; }
+  .pill-chatgpt { background: #E8F8F0; color: #065F46; }
+  .log-title { font-weight: 600; font-size: 13px; flex: 1; }
+  .log-section-ref { font-size: 11px; color: var(--mid); }
+  .log-chevron { color: var(--mid); font-size: 12px; transition: transform 0.2s; }
+  .log-entry.open .log-chevron { transform: rotate(180deg); }
+  .log-body {
+    display: none;
+    padding: 0 18px 18px;
+    background: var(--offwhite);
+    border-top: 1px solid var(--border);
+  }
+  .log-entry.open .log-body { display: block; }
+  .log-field { margin-top: 12px; }
+  .log-field-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--mid); margin-bottom: 4px; }
+  .log-field-val { font-size: 13px; line-height: 1.6; color: #334155; }
+  .reflection-box {
+    background: #FFF9E6;
+    border-left: 3px solid var(--amber);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #5B4A00;
+    margin-top: 8px;
+  }
+
+  /* ── BENCHMARK TABLE ── */
+  .bench-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+  .bench-table th {
+    background: var(--navy);
+    color: #fff;
+    padding: 10px 14px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .bench-table th:first-child { text-align: left; border-radius: 8px 0 0 0; }
+  .bench-table th:last-child { border-radius: 0 8px 0 0; }
+  .bench-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .bench-table td:first-child { text-align: left; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 13px; }
+  .bench-table tr:hover td { background: var(--offwhite); }
+  .gap-neg { color: var(--red); font-weight: 700; }
+  .gap-pos { color: var(--green); font-weight: 700; }
+
+  /* ── ETHICS ── */
+  .ethics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .ethics-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    background: #fff;
+  }
+  .ethics-icon { font-size: 24px; margin-bottom: 8px; }
+  .ethics-title { font-weight: 700; font-size: 14px; color: var(--navy); margin-bottom: 6px; }
+  .ethics-body { font-size: 12px; color: #475569; line-height: 1.6; }
+
+  /* ── SECTION HERO ── */
+  .section-hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .hero-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #7FC8EE;
+    margin-bottom: 6px;
+  }
+  .hero-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .hero-desc { font-size: 13px; color: #BDD9EF; line-height: 1.6; max-width: 600px; }
+  .hero-stat { text-align: right; flex-shrink: 0; }
+  .hero-stat-num { font-family: 'DM Serif Display', serif; font-size: 42px; color: var(--teal); line-height: 1; }
+  .hero-stat-lbl { font-size: 12px; color: #7FC8EE; }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--navy);
+    color: #8BBCDA;
+    font-size: 11px;
+    text-align: center;
+    padding: 18px 32px;
+    margin-top: 48px;
+    line-height: 1.6;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(15,33,64,0.2); border-radius: 3px; }
+
+  /* animate in */
+  .section.active .card, .section.active .kpi-card {
+    animation: fadeUp 0.3s ease forwards;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-left">
+      <div class="logo-pill">WAI · Strategy</div>
+      <div>
+        <div class="header-title">RuralNidhi NBFC — <span>Strategic Reboot</span></div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span><b>Nasapu Sai Shraddha</b> | M06C-25</span>
+      <span><b>Prof.</b> Santosh Kumar Prusty</span>
+      <span><b>IIM Ranchi</b> · 2026</span>
+    </div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="nav-wrap">
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('overview')">📊 Overview</button>
+    <button class="nav-tab" onclick="showSection('scenario')">📈 Scenario Analysis</button>
+    <button class="nav-tab" onclick="showSection('competitive')">⚔️ Porter's Five Forces</button>
+    <button class="nav-tab" onclick="showSection('vrio')">🔬 VRIO Analysis</button>
+    <button class="nav-tab" onclick="showSection('options')">🎯 Strategic Options</button>
+    <button class="nav-tab" onclick="showSection('roadmap')">🗺️ Implementation Roadmap</button>
+    <button class="nav-tab" onclick="showSection('logbook')">🤖 AI Prompt Logbook</button>
+    <button class="nav-tab" onclick="showSection('ethics')">⚖️ Ethics & Risks</button>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION: OVERVIEW
+═══════════════════════════════════════════════════ -->
+<div id="sec-overview" class="section active">
+  <div class="section-hero">
+    <div>
+      <div class="hero-label">Working with AI · Strategy Project</div>
+      <div class="hero-title">RuralNidhi NBFC — Digitize · Partner · Specialize</div>
+      <div class="hero-desc">A 3–5 year strategic reboot for a mid-sized rural NBFC (₹380 Cr revenue) in East & Central India facing margin compression, PSL competition from banks, and rising delinquency. Powered by AI-assisted strategic analysis with managerial judgment at the core.</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">18M</div>
+      <div class="hero-stat-lbl">Execution Horizon</div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card red">
+      <div class="kpi-label">Current CAC</div>
+      <div class="kpi-value">₹2,750</div>
+      <div class="kpi-sub">vs. ₹1,800 industry benchmark</div>
+      <div class="kpi-badge badge-red">53% above benchmark</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">Delinquency Rate</div>
+      <div class="kpi-value">7.0%</div>
+      <div class="kpi-sub">vs. 5.0% industry benchmark</div>
+      <div class="kpi-badge badge-red">2pp above benchmark</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">Bureau Hit Rate</div>
+      <div class="kpi-value">42%</div>
+      <div class="kpi-sub">vs. 65% industry benchmark</div>
+      <div class="kpi-badge badge-amber">Low thin-file coverage</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">Digital Origination</div>
+      <div class="kpi-value">5%</div>
+      <div class="kpi-sub">vs. 35% industry | 85% digital leaders</div>
+      <div class="kpi-badge badge-amber">Critical gap</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">BC Network</div>
+      <div class="kpi-value">1,800</div>
+      <div class="kpi-sub">Villages covered | 10-yr relationships</div>
+      <div class="kpi-badge badge-green">Core strength</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Funding Cost</div>
+      <div class="kpi-value">13.5%</div>
+      <div class="kpi-sub">vs. 11.5% industry benchmark</div>
+      <div class="kpi-badge badge-red">2pp margin drag</div>
+    </div>
+  </div>
+
+  <!-- Benchmark Chart -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Operational Benchmark Gap Analysis</div>
+      <div class="card-sub">RuralNidhi vs. Industry Benchmark — Key Metrics</div>
+      <div class="chart-wrap">
+        <canvas id="benchmarkChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Strategic Context</div>
+      <div class="card-sub">Key market forces shaping the reboot thesis</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
+        <div style="border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="font-weight:700;font-size:13px;color:var(--navy);margin-bottom:4px;">₹13.8 Lakh Cr</div>
+          <div style="font-size:12px;color:var(--mid);">Bank credit to NBFCs — stagnant; funding squeeze worsening</div>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="font-weight:700;font-size:13px;color:var(--navy);margin-bottom:4px;">9,000+ NBFCs</div>
+          <div style="font-size:12px;color:var(--mid);">Registered competitors — intense rivalry; margin pressure systemic</div>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="font-weight:700;font-size:13px;color:var(--navy);margin-bottom:4px;">$350B Digital Lending</div>
+          <div style="font-size:12px;color:var(--mid);">Projected alt-data fintech market — existential substitute threat</div>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="font-weight:700;font-size:13px;color:var(--navy);margin-bottom:4px;">RBI April 2025</div>
+          <div style="font-size:12px;color:var(--mid);">Risk-weight rollback — temporary reprieve but structural challenges persist</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Benchmark table -->
+  <div class="card">
+    <div class="card-title">Full Synthetic Benchmark Dataset</div>
+    <div class="card-sub">Calibrated from ICRA (2025), IBEF (2026), FIDC (2025) — illustrative estimates disclosed in Section 5.3</div>
+    <div style="overflow-x:auto;">
+      <table class="bench-table">
+        <thead><tr>
+          <th>Metric</th>
+          <th>RuralNidhi Current</th>
+          <th>Industry Benchmark</th>
+          <th>Digital Leader</th>
+          <th>Gap vs. Benchmark</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Customer Acquisition Cost (₹)</td><td>2,750</td><td>1,800</td><td>900</td><td class="gap-neg">+52.8%</td></tr>
+          <tr><td>Loan Processing Time (days)</td><td>9</td><td>4</td><td>2</td><td class="gap-neg">+125%</td></tr>
+          <tr><td>Bureau Hit Rate (%)</td><td>42%</td><td>65%</td><td>80%</td><td class="gap-neg">−35.4%</td></tr>
+          <tr><td>Delinquency Rate (%)</td><td>7.0%</td><td>5.0%</td><td>3.5%</td><td class="gap-neg">+40%</td></tr>
+          <tr><td>Funding Cost (%)</td><td>13.5%</td><td>11.5%</td><td>9.5%</td><td class="gap-neg">+17.4%</td></tr>
+          <tr><td>Digital Origination Share (%)</td><td>5%</td><td>35%</td><td>85%</td><td class="gap-neg">−85.7%</td></tr>
+          <tr><td>BC Network (villages)</td><td>1,800</td><td>2,500</td><td>500</td><td class="gap-neg">−28%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION: SCENARIO ANALYSIS
+═══════════════════════════════════════════════════ -->
+<div id="sec-scenario" class="section">
+  <div class="section-hero">
+    <div>
+      <div class="hero-label">Section 6.5 · Table 5</div>
+      <div class="hero-title">Strategic Scenario Analysis</div>
+      <div class="hero-desc">18-month impact of 'Digitize–Partner–Specialize' on CAC and Delinquency across Conservative, Moderate, and Best-Case scenarios. AI-generated ranges adjusted for East & Central India seasonal income volatility.</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">60%</div>
+      <div class="hero-stat-lbl">Best-case CAC reduction</div>
+    </div>
+  </div>
+
+  <div class="scenario-toggle">
+    <button class="scenario-btn active" onclick="filterScenario('all', this)">All Scenarios</button>
+    <button class="scenario-btn" onclick="filterScenario('conservative', this)">Conservative</button>
+    <button class="scenario-btn" onclick="filterScenario('moderate', this)">Moderate</button>
+    <button class="scenario-btn" onclick="filterScenario('bestcase', this)">Best-Case</button>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Customer Acquisition Cost (₹)</div>
+      <div class="card-sub">Baseline → Post-intervention comparison · Source: IBEF benchmarks, adjusted by managerial judgment</div>
+      <div class="chart-wrap">
+        <canvas id="cacChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Delinquency Rate (%)</div>
+      <div class="card-sub">Adjusted upward from AI estimate to account for seasonal income volatility (refs [2][3])</div>
+      <div class="chart-wrap">
+        <canvas id="delinqChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">Conservative Scenario</div>
+      <div class="card-sub">+12 months | Cautious digital rollout</div>
+      <div style="display:flex;gap:20px;margin-top:8px;">
+        <div>
+          <div class="kpi-label">CAC</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:28px;">₹2,200</div>
+          <div class="kpi-badge badge-amber">↓ 20%</div>
+        </div>
+        <div>
+          <div class="kpi-label">Delinquency</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:28px;">6.0%</div>
+          <div class="kpi-badge badge-amber">↓ 14%</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--mid);margin-top:12px;line-height:1.6;">Even conservative outcomes justify the ₹12–18 Cr Year 1 investment. Break-even: 18–24 months.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Moderate Scenario</div>
+      <div class="card-sub">+12 months | On-plan execution</div>
+      <div style="display:flex;gap:20px;margin-top:8px;">
+        <div>
+          <div class="kpi-label">CAC</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:28px;">₹1,600</div>
+          <div class="kpi-badge badge-green">↓ 42%</div>
+        </div>
+        <div>
+          <div class="kpi-label">Delinquency</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:28px;">4.8%</div>
+          <div class="kpi-badge badge-green">↓ 31%</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--mid);margin-top:12px;line-height:1.6;">Alt-data scoring live; co-lending partnerships active; BC digital enrolment >60%.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Best-Case Scenario</div>
+      <div class="card-sub">+18 months | Full strategy execution</div>
+      <div style="display:flex;gap:20px;margin-top:8px;">
+        <div>
+          <div class="kpi-label">CAC</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:28px;">₹1,100</div>
+          <div class="kpi-badge badge-green">↓ 60%</div>
+        </div>
+        <div>
+          <div class="kpi-label">Delinquency</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:28px;">3.8%</div>
+          <div class="kpi-badge badge-green">↓ 46%</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--mid);margin-top:12px;line-height:1.6;">Agri value-chain specialisation fully active; ₹8–12 Cr annual CAC saving realised.</div>
+    </div>
+  </div>
+
+  <div class="card" style="background:#FEF9E7;border:1px solid #D4AC0D;">
+    <div class="card-title" style="color:#7D6800;">⚠️ AI Judgment Override — Entry 8</div>
+    <div class="card-sub" style="color:#9A6D00;">Managerial correction applied to AI-generated scenario model</div>
+    <div style="font-size:13px;color:#5B4A00;line-height:1.7;">
+      ChatGPT's original delinquency estimates were adjusted <b>upward</b> because the AI did not account for <b>seasonal income volatility</b> in East and Central India — a key rural lending risk flagged in references [2] and [3]. The CAC range was also tightened from the AI's ₹8–20 Cr to a more actionable <b>₹12–18 Cr</b> after cross-checking IBEF benchmarks.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION: PORTER'S FIVE FORCES
+═══════════════════════════════════════════════════ -->
+<div id="sec-competitive" class="section">
+  <div class="section-hero">
+    <div>
+      <div class="hero-label">Section 6.1 · Table 3</div>
+      <div class="hero-title">Porter's Five Forces Analysis</div>
+      <div class="hero-desc">RuralNidhi faces all five forces simultaneously. 4 of 5 forces rated High or Medium-High — a structurally unattractive market requiring capability transformation, not incremental improvement.</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">4/5</div>
+      <div class="hero-stat-lbl">Forces at High/Med-High</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Competitive Intensity Radar</div>
+      <div class="card-sub">Scale: 1 = Low, 5 = High intensity</div>
+      <div class="chart-wrap radar">
+        <canvas id="radarChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Force-by-Force Breakdown</div>
+      <div class="card-sub">Intensity ratings with key drivers — AI output refined with East/Central India context</div>
+      <div id="forcesBreakdown" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Strategic Implication</div>
+    <div class="card-sub">From Section 6.1 — Managerial interpretation (AI provided structure; conclusion is own judgment)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:4px;">
+      <div style="background:var(--offwhite);border-radius:8px;padding:16px;">
+        <div style="font-weight:700;color:var(--red);font-size:13px;margin-bottom:6px;">🚫 Cannot compete on price</div>
+        <div style="font-size:12px;color:var(--mid);line-height:1.6;">Banks with PSL mandates have structural cost advantages. 9,000+ NBFCs create a race to the bottom on rates.</div>
+      </div>
+      <div style="background:var(--offwhite);border-radius:8px;padding:16px;">
+        <div style="font-weight:700;color:var(--amber);font-size:13px;margin-bottom:6px;">⚡ Cannot compete on reach alone</div>
+        <div style="font-size:12px;color:var(--mid);line-height:1.6;">Digital lenders with app-based origination bypass geography constraints RuralNidhi's BC network depends on.</div>
+      </div>
+      <div style="background:#E8F8F0;border-radius:8px;padding:16px;">
+        <div style="font-weight:700;color:var(--teal);font-size:13px;margin-bottom:6px;">✅ Differentiate via data + niche</div>
+        <div style="font-size:12px;color:var(--mid);line-height:1.6;">Capability transformation through alt-data scoring, co-lending capital, and agri value-chain specialisation is the only viable path.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION: VRIO
+═══════════════════════════════════════════════════ -->
+<div id="sec-vrio" class="section">
+  <div class="section-hero">
+    <div>
+      <div class="hero-label">Section 6.2 · Table 4</div>
+      <div class="hero-title">VRIO Framework — Internal Resource Diagnosis</div>
+      <div class="hero-desc">BC Network and Rural Trust are genuine but poorly organised strengths. Legacy Loan Portfolio Data is the most valuable latent asset. One AI correction applied: Legacy Data 'Organized' rating changed from Partial → No based on explicit mention of fragmented systems.</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">1★</div>
+      <div class="hero-stat-lbl">AI correction made</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">VRIO Heatmap — Strategic Resources</div>
+    <div class="card-sub">Scale: Yes = Strength present | Partial = Incomplete | No = Gap/Weakness</div>
+    <div style="overflow-x:auto;margin-top:8px;">
+      <table class="vrio-table">
+        <thead><tr>
+          <th>Resource</th>
+          <th>Valuable</th>
+          <th>Rare</th>
+          <th>Inimitable</th>
+          <th>Organized</th>
+          <th>Competitive Position</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td>BC Network (10-yr relationships)</td>
+            <td><span class="cell-yes">Yes</span></td>
+            <td><span class="cell-yes">Yes</span></td>
+            <td><span class="cell-partial">Partial</span></td>
+            <td><span class="cell-no">No</span></td>
+            <td>Temporary Advantage<br><span style="font-size:11px;color:var(--sky);">→ Digitize to leverage</span></td>
+          </tr>
+          <tr>
+            <td>Rural Trust (community-embedded)</td>
+            <td><span class="cell-yes">Yes</span></td>
+            <td><span class="cell-yes">Yes</span></td>
+            <td><span class="cell-yes">Yes</span></td>
+            <td><span class="cell-no">No</span></td>
+            <td>Sustained but Unscalable<br><span style="font-size:11px;color:var(--sky);">→ Organize for leverage</span></td>
+          </tr>
+          <tr style="background:#FEF9E7;">
+            <td>Legacy Loan Portfolio Data ★</td>
+            <td><span class="cell-yes">Yes</span></td>
+            <td><span class="cell-yes">Yes</span></td>
+            <td><span class="cell-yes">Yes</span></td>
+            <td><span class="cell-no">No</span></td>
+            <td>Latent Advantage ★<br><span class="ai-note">⚡ Most urgent to unlock</span></td>
+          </tr>
+          <tr>
+            <td>Agri/MSME Domain Knowledge</td>
+            <td><span class="cell-yes">Yes</span></td>
+            <td><span class="cell-partial">Partial</span></td>
+            <td><span class="cell-partial">Partial</span></td>
+            <td><span class="cell-partial">Partial</span></td>
+            <td>Competitive Parity<br><span style="font-size:11px;color:var(--sky);">→ Maintain</span></td>
+          </tr>
+          <tr>
+            <td>Manual KYC Processes</td>
+            <td><span class="cell-partial">Partial</span></td>
+            <td><span class="cell-no">No</span></td>
+            <td><span class="cell-no">No</span></td>
+            <td><span class="cell-yes">Yes</span></td>
+            <td>Competitive Disadvantage<br><span style="font-size:11px;color:var(--red);">→ Eliminate via e-KYC</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="background:#FEF9E7;border:1px solid var(--amber);">
+    <div class="card-title" style="color:#7D6800;">★ AI Correction Applied — Entry 5</div>
+    <div class="card-sub" style="color:#9A6D00;">Managerial override on VRIO rating</div>
+    <div style="font-size:13px;color:#5B4A00;line-height:1.7;">
+      ChatGPT originally rated Legacy Loan Portfolio Data as <b>"Partially"</b> organized. This was corrected to <b>"Not Organized"</b> because the case brief explicitly mentions fragmented data systems. This correction was critical — it sharpened the urgency of digitization as the <em>first</em> strategic priority. Without organizing this data asset, RuralNidhi cannot build AI-based credit scoring.
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Resource Strength Radar</div>
+      <div class="card-sub">Aggregated VRIO scores across all resources</div>
+      <div class="chart-wrap">
+        <canvas id="vrioChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Strategic Priorities from VRIO</div>
+      <div class="card-sub">Action imperatives derived from framework analysis</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+        <div style="border-left:4px solid var(--red);background:#FDECEA;border-radius:0 8px 8px 0;padding:12px 14px;">
+          <div style="font-weight:700;font-size:13px;color:var(--red);margin-bottom:4px;">Priority 1 — Eliminate Manual KYC</div>
+          <div style="font-size:12px;color:#7B241C;">Only resource that is organized but provides zero competitive advantage. Deploy e-KYC via DigiLocker/Aadhaar immediately in Phase 1.</div>
+        </div>
+        <div style="border-left:4px solid var(--orange);background:#FEF5E7;border-radius:0 8px 8px 0;padding:12px 14px;">
+          <div style="font-weight:700;font-size:13px;color:var(--orange);margin-bottom:4px;">Priority 2 — Unlock Legacy Data (Latent Advantage)</div>
+          <div style="font-size:12px;color:#784212;">Digitize and consolidate fragmented loan portfolio data to enable alt-data credit scoring. This is the foundation of the entire strategy.</div>
+        </div>
+        <div style="border-left:4px solid var(--sky);background:#EBF5FB;border-radius:0 8px 8px 0;padding:12px 14px;">
+          <div style="font-weight:700;font-size:13px;color:var(--sky);margin-bottom:4px;">Priority 3 — Organize BC Network & Rural Trust</div>
+          <div style="font-size:12px;color:#1A5276;">Both are Valuable, Rare, and Inimitable — but "Not Organized." BC Digital Enablement in Phase 1 converts these into scalable strategic assets.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION: STRATEGIC OPTIONS
+═══════════════════════════════════════════════════ -->
+<div id="sec-options" class="section">
+  <div class="section-hero">
+    <div>
+      <div class="hero-label">Section 6.3–6.4</div>
+      <div class="hero-title">Strategic Options Evaluation</div>
+      <div class="hero-desc">5 strategic options generated by ChatGPT (Entry 6), stress-tested via challenge prompt (Entry 7), and evaluated using Feasibility × Impact matrix. The A+B+C hybrid was own managerial judgment — not AI's recommendation.</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">A+B+C</div>
+      <div class="hero-stat-lbl">Selected hybrid</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Feasibility × Impact Scoring Matrix</div>
+    <div class="card-sub">Options A, B, C cluster in PURSUE quadrant. D = beyond capacity. E = value-destructive.</div>
+    <div class="chart-wrap tall">
+      <canvas id="optionsChart"></canvas>
+    </div>
+  </div>
+
+  <div class="options-grid">
+    <div class="option-card selected">
+      <div class="option-status status-sel">★ Selected</div>
+      <div class="option-label">Option A</div>
+      <div class="option-name">Digital Transformation</div>
+      <div class="option-scores">
+        <div class="score-item"><div class="score-num">3.5</div><div class="score-lbl">Feasibility</div></div>
+        <div class="score-item"><div class="score-num">4.0</div><div class="score-lbl">Impact</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--mid);margin-top:10px;line-height:1.5;">e-KYC, alt-data scoring, mobile-first origination. Unlocks legacy data for credit scoring. Foundation of the hybrid.</div>
+    </div>
+    <div class="option-card selected">
+      <div class="option-status status-sel">★ Selected</div>
+      <div class="option-label">Option B</div>
+      <div class="option-name">Co-Lending Partnerships</div>
+      <div class="option-scores">
+        <div class="score-item"><div class="score-num">3.8</div><div class="score-lbl">Feasibility</div></div>
+        <div class="score-item"><div class="score-num">3.5</div><div class="score-lbl">Impact</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--mid);margin-top:10px;line-height:1.5;">Bank partnerships for cheaper capital. Solves funding cost gap. Risk: bank appetite may be limited for rural portfolios.</div>
+    </div>
+    <div class="option-card selected">
+      <div class="option-status status-sel">★ Selected</div>
+      <div class="option-label">Option C</div>
+      <div class="option-name">Agri Value-Chain Specialisation</div>
+      <div class="option-scores">
+        <div class="score-item"><div class="score-num">4.2</div><div class="score-lbl">Feasibility</div></div>
+        <div class="score-item"><div class="score-num">3.8</div><div class="score-lbl">Impact</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--mid);margin-top:10px;line-height:1.5;">Embedded lending in dairy, horticulture, fisheries. Creates switching costs. Geographic concentration risk flagged.</div>
+    </div>
+    <div class="option-card rejected">
+      <div class="option-status status-rej">✗ Rejected</div>
+      <div class="option-label">Option D</div>
+      <div class="option-name">Platform Pivot</div>
+      <div class="option-scores">
+        <div class="score-item"><div class="score-num">1.5</div><div class="score-lbl">Feasibility</div></div>
+        <div class="score-item"><div class="score-num">4.5</div><div class="score-lbl">Impact</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--mid);margin-top:10px;line-height:1.5;">Full rural financial ecosystem. AI overrated this — ignored digital and financial constraints. Beyond current capacity.</div>
+    </div>
+    <div class="option-card rejected">
+      <div class="option-status status-rej">✗ Rejected</div>
+      <div class="option-label">Option E</div>
+      <div class="option-name">Managed Decline / Exit</div>
+      <div class="option-scores">
+        <div class="score-item"><div class="score-num">3.0</div><div class="score-lbl">Feasibility</div></div>
+        <div class="score-item"><div class="score-num">1.0</div><div class="score-lbl">Impact</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--mid);margin-top:10px;line-height:1.5;">Acquisition by larger player. Value-destructive. Discarded despite feasibility — no strategic upside.</div>
+    </div>
+  </div>
+
+  <div class="card" style="background:#E8F8F0;border:1px solid var(--teal);">
+    <div class="card-title" style="color:#0E6655;">Why A+B+C Works as a Hybrid — Managerial Judgment</div>
+    <div class="card-sub" style="color:#148F77;">The inter-option complementarities that justify the hybrid — AI's recommendation was individual options, not the synthesis</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:4px;font-size:13px;color:#0A3D2E;">
+      <div style="background:#fff;border-radius:8px;padding:14px;">
+        <b>Digital (A) → unlocks data</b><br><span style="font-size:12px;color:var(--mid);">e-KYC + LMS digitization makes the legacy portfolio data organized — the prerequisite for alt-data scoring in Phase 2.</span>
+      </div>
+      <div style="background:#fff;border-radius:8px;padding:14px;">
+        <b>Co-Lending (B) → solves funding</b><br><span style="font-size:12px;color:var(--mid);">Digital track record from Phase 1 creates credibility for bank co-lending partnerships in Phase 2. A enables B.</span>
+      </div>
+      <div style="background:#fff;border-radius:8px;padding:14px;">
+        <b>Specialisation (C) → creates moats</b><br><span style="font-size:12px;color:var(--mid);">Agri value-chain products require domain data and trust — both organized by Phase 1–2. C is only viable after A+B.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION: ROADMAP
+═══════════════════════════════════════════════════ -->
+<div id="sec-roadmap" class="section">
+  <div class="section-hero">
+    <div>
+      <div class="hero-label">Section 8 · Tables 7, 8, 9</div>
+      <div class="hero-title">18-Month Implementation Roadmap</div>
+      <div class="hero-desc">Three-phase execution plan with phase-gate Go/No-Go criteria at M6 and M12. AI-generated scaffold refined by correcting ownership roles to match RuralNidhi's actual org structure (no Chief Digital Officer assumed).</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">3</div>
+      <div class="hero-stat-lbl">Execution phases</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Gantt Chart — Phased Activity Timeline</div>
+    <div class="card-sub">Phase 1: Digital Foundation (M1–6) | Phase 2: Partner & Predict (M6–12) | Phase 3: Specialize & Scale (M12–18)</div>
+    <div class="gantt-wrap" style="margin-top:16px;">
+      <div id="ganttContainer"></div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card" style="border-top:4px solid var(--sky);">
+      <div class="card-title">Phase 1: Digital Foundation</div>
+      <div class="card-sub">Months 1–6 | Owner: CRO + Field Ops Head + Tech Partners</div>
+      <div style="font-size:12px;color:#334155;line-height:1.8;margin-top:8px;">
+        • e-KYC & Digital Onboarding Setup<br>
+        • Loan Management System (LMS) Integration<br>
+        • BC Digital Enablement & Training (full 6M)<br>
+        • Legacy Data Digitization<br>
+        • Alt-Data Scoring Pilot Design<br><br>
+        <b style="color:var(--sky);">Go/No-Go at M6:</b> e-KYC coverage, system uptime, BC digital enrolment %
+      </div>
+    </div>
+    <div class="card" style="border-top:4px solid var(--amber);">
+      <div class="card-title">Phase 2: Partner & Predict</div>
+      <div class="card-sub">Months 6–12 | Owner: CRO + External Partners</div>
+      <div style="font-size:12px;color:#334155;line-height:1.8;margin-top:8px;">
+        • Co-Lending Partnership Negotiations<br>
+        • Alt-Data Credit Scoring Pilot (Live)<br>
+        • Predictive Delinquency Model Build<br>
+        • First Co-Lending Disbursements (M10)<br><br>
+        <b style="color:var(--amber);">Go/No-Go at M12:</b> Co-lending agreements signed, NPL early warning accuracy threshold
+      </div>
+    </div>
+    <div class="card" style="border-top:4px solid var(--green);">
+      <div class="card-title">Phase 3: Specialize & Scale</div>
+      <div class="card-sub">Months 12–18 | Owner: CRO + BC Coordinators</div>
+      <div style="font-size:12px;color:#334155;line-height:1.8;margin-top:8px;">
+        • Agri Value-Chain Product Launch (Dairy/Horticulture)<br>
+        • Expand Alt-Data Scoring (Full Portfolio)<br>
+        • Scale BC Network in New Districts<br>
+        • Performance Review & Phase Gate (M17)<br><br>
+        <b style="color:var(--green);">Success metrics:</b> Agri vertical loan volume, CAC vs. scenario targets
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="background:#FEF9E7;border:1px solid var(--amber);">
+    <div class="card-title" style="color:#7D6800;">⚠️ AI Judgment Override — Entry 9: Ownership Correction</div>
+    <div style="font-size:13px;color:#5B4A00;line-height:1.7;margin-top:8px;">
+      ChatGPT suggested a <b>"Chief Digital Officer"</b> as roadmap owner — a role RuralNidhi almost certainly does not have given its size. Ownership was corrected to existing roles: <b>CRO for risk analytics</b>, <b>Field Operations Head for BC enablement</b>, and <b>external technology partners</b> for LMS/KYC integration. Success metrics were retained but numeric targets tightened to align with the scenario model (Entry 8).
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION: AI PROMPT LOGBOOK
+═══════════════════════════════════════════════════ -->
+<div id="sec-logbook" class="section">
+  <div class="section-hero">
+    <div>
+      <div class="hero-label">Annexure A · WAI Evaluation Policy 2026</div>
+      <div class="hero-title">AI Prompt Logbook</div>
+      <div class="hero-desc">10 documented AI interactions across Perplexity AI (environmental scanning) and ChatGPT GPT-4 (frameworks, ideation, roadmap, ethics). All outputs reviewed, validated, and interpreted through managerial judgment before inclusion.</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">10</div>
+      <div class="hero-stat-lbl">Logged interactions</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:24px;">
+    <div class="card" style="background:var(--navy);color:#fff;">
+      <div style="font-size:11px;color:#7FC8EE;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Perplexity AI</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:32px;color:#fff;margin-bottom:4px;">2 Entries</div>
+      <div style="font-size:12px;color:#8BBCDA;">Environmental scanning, literature review. Synthesized ICRA, FIDC, RBI sources.</div>
+    </div>
+    <div class="card" style="background:var(--teal);color:#fff;">
+      <div style="font-size:11px;color:#A9DFCF;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">ChatGPT GPT-4</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:32px;color:#fff;margin-bottom:4px;">8 Entries</div>
+      <div style="font-size:12px;color:#D5F5EE;">Frameworks, strategic options, roadmap, ethics. Challenge prompt (Entry 7) most valuable.</div>
+    </div>
+  </div>
+
+  <div class="logbook-grid" id="logbookContainer"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION: ETHICS & RISKS
+═══════════════════════════════════════════════════ -->
+<div id="sec-ethics" class="section">
+  <div class="section-hero">
+    <div>
+      <div class="hero-label">Section 9</div>
+      <div class="hero-title">Responsible AI — Ethics & Risk Framework</div>
+      <div class="hero-desc">Four dimensions of responsible AI deployment for rural NBFC credit scoring. AI output was solid but generic — East/Central India-specific context (tribal communities, seasonal labour, informal economy) was added through managerial judgment.</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">4</div>
+      <div class="hero-stat-lbl">Ethics dimensions</div>
+    </div>
+  </div>
+
+  <div class="ethics-grid">
+    <div class="ethics-card">
+      <div class="ethics-icon">⚖️</div>
+      <div class="ethics-title">Demographic Bias in Credit Scoring</div>
+      <div class="ethics-body">Proxy variable bias risk: mobile data usage patterns can encode caste/gender biases. Fairness audits required. Special attention to women borrowers and lower-income communities in East/Central India's tribal areas and informal economy segments.</div>
+    </div>
+    <div class="ethics-card">
+      <div class="ethics-icon">🔐</div>
+      <div class="ethics-title">Data Privacy — Account Aggregator</div>
+      <div class="ethics-body">Consent challenges for digitally illiterate rural borrowers under the AA framework. BC-mediated local language consent (own addition — AI did not flag this). Strict data minimization and purpose limitation required.</div>
+    </div>
+    <div class="ethics-card">
+      <div class="ethics-icon">🤖</div>
+      <div class="ethics-title">AI Hallucination Safeguards</div>
+      <div class="ethics-body">AI credit scores must never be sole basis for lending decisions. Human-in-the-loop decisioning as formal policy requirement (Section 9.4). All AI-generated statistics verified against original sources before inclusion in report.</div>
+    </div>
+    <div class="ethics-card">
+      <div class="ethics-icon">🌾</div>
+      <div class="ethics-title">Rural Context Specificity</div>
+      <div class="ethics-body">Seasonal income volatility in agri lending not captured by standard AI models. Informal economy participants, seasonal labour, and non-traditional creditworthiness signals require human override capability in all scoring decisions.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px;">
+    <div class="card-title">AI Judgment Overrides — Summary Across Project</div>
+    <div class="card-sub">Instances where managerial reasoning corrected, refined, or overrode AI output</div>
+    <div style="overflow-x:auto;margin-top:12px;">
+      <table class="bench-table">
+        <thead><tr>
+          <th>Entry</th>
+          <th>AI Output</th>
+          <th>Override / Correction</th>
+          <th>Reason</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td>Entry 5 — VRIO</td>
+            <td>Legacy Data: "Partially" Organized</td>
+            <td style="color:var(--teal);font-family:'DM Sans',sans-serif;font-weight:600;">Corrected to "Not Organized"</td>
+            <td style="font-family:'DM Sans',sans-serif;">Case brief explicitly mentions fragmented systems</td>
+          </tr>
+          <tr>
+            <td>Entry 6 — Options</td>
+            <td>Option D (Platform Pivot) rated viable</td>
+            <td style="color:var(--teal);font-family:'DM Sans',sans-serif;font-weight:600;">Rejected as beyond capacity</td>
+            <td style="font-family:'DM Sans',sans-serif;">AI ignored digital/financial constraints of mid-sized NBFC</td>
+          </tr>
+          <tr>
+            <td>Entry 6 — Options</td>
+            <td>Individual options, no hybrid suggested</td>
+            <td style="color:var(--teal);font-family:'DM Sans',sans-serif;font-weight:600;">A+B+C hybrid — own judgment</td>
+            <td style="font-family:'DM Sans',sans-serif;">Inter-option complementarities identified by managerial reasoning</td>
+          </tr>
+          <tr>
+            <td>Entry 8 — Scenarios</td>
+            <td>Delinquency: lower estimates; CAC: ₹8–20Cr range</td>
+            <td style="color:var(--teal);font-family:'DM Sans',sans-serif;font-weight:600;">Adjusted upward; tightened to ₹12–18Cr</td>
+            <td style="font-family:'DM Sans',sans-serif;">Seasonal income volatility in East/Central India not modelled</td>
+          </tr>
+          <tr>
+            <td>Entry 9 — Roadmap</td>
+            <td>Chief Digital Officer as owner</td>
+            <td style="color:var(--teal);font-family:'DM Sans',sans-serif;font-weight:600;">Changed to CRO + Field Ops + Tech Partners</td>
+            <td style="font-family:'DM Sans',sans-serif;">Role doesn't exist in RuralNidhi's likely org structure</td>
+          </tr>
+          <tr>
+            <td>Entry 10 — Ethics</td>
+            <td>Generic ethics output; missed rural India context</td>
+            <td style="color:var(--teal);font-family:'DM Sans',sans-serif;font-weight:600;">Added tribal, seasonal, informal economy lens</td>
+            <td style="font-family:'DM Sans',sans-serif;">East/Central India specificity not in AI training context</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="background:#EBF5FB;border:1px solid var(--sky);margin-top:0;">
+    <div class="card-title" style="color:var(--blue);">📋 WAI Evaluation Policy 2026 — Compliance Statement</div>
+    <div style="font-size:13px;color:#1A5276;line-height:1.8;margin-top:8px;">
+      All AI outputs documented in the Prompt Logbook (Annexure A) were <b>reviewed, validated, and interpreted through managerial judgment</b> before inclusion in the report. No AI output was accepted uncritically. Statistics were cross-checked against original sources (ICRA, FIDC, IBEF). AI hallucination risks were proactively stress-tested via Entry 7's challenge prompt. Human-in-the-loop decisioning is recommended as formal policy in Section 9.4.
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer class="footer">
+  RuralNidhi NBFC Strategy Dashboard · Working with AI Project · IIM Ranchi 2026<br>
+  Nasapu Sai Shraddha | M06C-25 | Submitted to Prof. Santosh Kumar Prusty<br>
+  All data is synthetic and benchmark-calibrated as disclosed in Section 5.3 · Not for commercial use
+</footer>
+
+<script>
+// ── SECTION NAVIGATION ──────────────────────────────────────
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  event.target.classList.add('active');
+
+  // init charts lazily
+  if (id === 'scenario' && !window._scenarioInited) { initScenarioCharts(); window._scenarioInited = true; }
+  if (id === 'competitive' && !window._compInited) { initCompetitiveCharts(); window._compInited = true; }
+  if (id === 'vrio' && !window._vrioInited) { initVrioCharts(); window._vrioInited = true; }
+  if (id === 'options' && !window._optInited) { initOptionsChart(); window._optInited = true; }
+  if (id === 'roadmap' && !window._roadmapInited) { initGantt(); window._roadmapInited = true; }
+}
+
+// ── OVERVIEW CHARTS ──────────────────────────────────────────
+(function initOverview() {
+  const ctx = document.getElementById('benchmarkChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['CAC (₹÷10)', 'Processing\nTime (days)', 'Bureau Hit\nRate (%)', 'Delinquency\n(%)', 'Funding\nCost (%)', 'Digital Orig.\n(%)', 'BC Villages\n(÷100)'],
+      datasets: [
+        { label: 'RuralNidhi Current', data: [275, 9, 42, 7, 13.5, 5, 18], backgroundColor: '#2E86C1CC' },
+        { label: 'Industry Benchmark', data: [180, 4, 65, 5, 11.5, 35, 25], backgroundColor: '#27AE6099' },
+        { label: 'Digital Leader', data: [90, 2, 80, 3.5, 9.5, 85, 5], backgroundColor: '#F39C1299' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { font: { family: 'DM Sans', size: 11 } } } },
+      scales: {
+        x: { ticks: { font: { family: 'DM Sans', size: 9 } } },
+        y: { ticks: { font: { family: 'DM Sans', size: 10 } } }
+      }
+    }
+  });
+})();
+
+// ── SCENARIO CHARTS ──────────────────────────────────────────
+let cacChart, delinqChart;
+function initScenarioCharts() {
+  const labels = ['Current\n(Baseline)', 'Conservative\n+12M', 'Moderate\n+12M', 'Best-Case\n+18M'];
+  const cacData = [2750, 2200, 1600, 1100];
+  const delinqData = [7.0, 6.0, 4.8, 3.8];
+  const colors = ['#BDD7EE', '#ED7D31', '#2E74B5', '#70AD47'];
+
+  cacChart = new Chart(document.getElementById('cacChart').getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data: cacData, backgroundColor: colors, borderRadius: 6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, max: 3400, ticks: { callback: v => '₹' + v.toLocaleString(), font: { family: 'DM Sans', size: 10 } } },
+        x: { ticks: { font: { family: 'DM Sans', size: 9 } } }
+      }
+    }
+  });
+
+  delinqChart = new Chart(document.getElementById('delinqChart').getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data: delinqData, backgroundColor: colors, borderRadius: 6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, max: 9, ticks: { callback: v => v + '%', font: { family: 'DM Sans', size: 10 } } },
+        x: { ticks: { font: { family: 'DM Sans', size: 9 } } }
+      }
+    }
+  });
+}
+
+function filterScenario(type, btn) {
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const allLabels = ['Current\n(Baseline)', 'Conservative\n+12M', 'Moderate\n+12M', 'Best-Case\n+18M'];
+  const allCac = [2750, 2200, 1600, 1100];
+  const allDelinq = [7.0, 6.0, 4.8, 3.8];
+  const colors = ['#BDD7EE', '#ED7D31', '#2E74B5', '#70AD47'];
+
+  let idxMap = {'all':[0,1,2,3],'conservative':[0,1],'moderate':[0,2],'bestcase':[0,3]};
+  let idxs = idxMap[type];
+
+  cacChart.data.labels = idxs.map(i => allLabels[i]);
+  cacChart.data.datasets[0].data = idxs.map(i => allCac[i]);
+  cacChart.data.datasets[0].backgroundColor = idxs.map(i => colors[i]);
+  cacChart.update();
+
+  delinqChart.data.labels = idxs.map(i => allLabels[i]);
+  delinqChart.data.datasets[0].data = idxs.map(i => allDelinq[i]);
+  delinqChart.data.datasets[0].backgroundColor = idxs.map(i => colors[i]);
+  delinqChart.update();
+}
+
+// ── COMPETITIVE CHARTS ──────────────────────────────────────
+function initCompetitiveCharts() {
+  const forces = [
+    { name: 'Competitive Rivalry', score: 5, color: '#C00000', drivers: '9,000+ NBFCs; PSL-driven public banks; intense rate competition in rural markets' },
+    { name: 'Threat of New Entrants', score: 3, color: '#ED7D31', drivers: 'Fintech digital lenders bypassing geography via partnerships; moderate regulatory barriers' },
+    { name: 'Buyer Power', score: 4, color: '#2E74B5', drivers: 'Price-sensitive rural borrowers; multiple alternatives; low switching costs' },
+    { name: 'Supplier Power', score: 3, color: '#ED7D31', drivers: 'Concentrated bank funding sources; RBI risk-weight changes creating credit flow volatility' },
+    { name: 'Threat of Substitutes', score: 4, color: '#2E74B5', drivers: 'Digital lenders with faster approvals; $350B alt-lending market; UPI-embedded credit products' },
+  ];
+
+  // Radar
+  const radarCtx = document.getElementById('radarChart').getContext('2d');
+  new Chart(radarCtx, {
+    type: 'radar',
+    data: {
+      labels: ['Competitive\nRivalry', 'Threat of\nNew Entrants', 'Buyer\nPower', 'Supplier\nPower', 'Threat of\nSubstitutes'],
+      datasets: [{
+        data: [5, 3, 4, 3, 4],
+        backgroundColor: 'rgba(46,116,181,0.2)',
+        borderColor: '#1F3864',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#fff',
+        pointBorderColor: '#1F3864',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 5,
+          ticks: { stepSize: 1, font: { family: 'DM Sans', size: 9 } },
+          pointLabels: { font: { family: 'DM Sans', size: 11, weight: '600' } }
+        }
+      }
+    }
+  });
+
+  // Force rows
+  const container = document.getElementById('forcesBreakdown');
+  forces.forEach(f => {
+    const row = document.createElement('div');
+    row.className = 'force-row';
+    row.innerHTML = `
+      <div class="force-name">${f.name}</div>
+      <div>
+        <div class="force-bar-wrap"><div class="force-bar" style="width:${f.score/5*100}%;background:${f.color};"></div></div>
+        <div style="font-size:10px;color:var(--mid);margin-top:3px;line-height:1.4;">${f.drivers}</div>
+      </div>
+      <div class="force-score" style="color:${f.color};">${f.score}/5</div>`;
+    container.appendChild(row);
+  });
+}
+
+// ── VRIO CHART ──────────────────────────────────────────────
+function initVrioCharts() {
+  const ctx = document.getElementById('vrioChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['BC Network', 'Rural Trust', 'Legacy Data', 'Domain Knowledge', 'Manual KYC'],
+      datasets: [
+        { label: 'Current State', data: [1.5, 1.5, 1.5, 2, 0.5], backgroundColor: 'rgba(192,0,0,0.15)', borderColor: '#C00000', borderWidth: 2, pointBackgroundColor: '#fff', pointBorderColor: '#C00000', pointRadius: 4 },
+        { label: 'Post-Digitize Potential', data: [4, 3.5, 4.5, 3, 3.5], backgroundColor: 'rgba(23,165,137,0.15)', borderColor: '#17A589', borderWidth: 2, borderDash: [5,3], pointBackgroundColor: '#fff', pointBorderColor: '#17A589', pointRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { font: { family: 'DM Sans', size: 11 } } } },
+      scales: {
+        r: {
+          min: 0, max: 5,
+          ticks: { stepSize: 1, font: { family: 'DM Sans', size: 9 } },
+          pointLabels: { font: { family: 'DM Sans', size: 10, weight: '600' } }
+        }
+      }
+    }
+  });
+}
+
+// ── OPTIONS CHART ──────────────────────────────────────────
+function initOptionsChart() {
+  const ctx = document.getElementById('optionsChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { label: 'Selected (A+B+C)', data: [{x:3.5,y:4.0,label:'A: Digital Transformation'},{x:3.8,y:3.5,label:'B: Co-Lending Partnership'},{x:4.2,y:3.8,label:'C: Agri Value-Chain Specialisation'}], backgroundColor: '#27AE60CC', borderColor: '#0F2140', borderWidth: 1.5, pointRadius: 12 },
+        { label: 'Rejected', data: [{x:1.5,y:4.5,label:'D: Platform Pivot'},{x:3.0,y:1.0,label:'E: Managed Decline/Exit'}], backgroundColor: '#C00000CC', borderColor: '#0F2140', borderWidth: 1.5, pointRadius: 12 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { family: 'DM Sans', size: 12 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const p = ctx.raw;
+              return `${p.label} — Feasibility: ${p.x} | Impact: ${p.y}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { min: 0, max: 5.5, title: { display: true, text: 'Feasibility (1=Very Difficult → 5=Highly Feasible)', font: { family: 'DM Sans', size: 11 } }, ticks: { font: { family: 'DM Sans', size: 10 } } },
+        y: { min: 0, max: 5.5, title: { display: true, text: 'Strategic Impact (1=Low → 5=Transformative)', font: { family: 'DM Sans', size: 11 } }, ticks: { font: { family: 'DM Sans', size: 10 } } },
+      }
+    }
+  });
+}
+
+// ── GANTT ──────────────────────────────────────────────────
+function initGantt() {
+  const tasks = [
+    // phase, label, start(1-based), duration
+    [1, 'e-KYC & Digital Onboarding Setup', 1, 3],
+    [1, 'Loan Mgmt System (LMS) Integration', 2, 4],
+    [1, 'BC Digital Enablement & Training', 1, 6],
+    [1, 'Legacy Data Digitization', 3, 4],
+    [1, 'Alt-Data Scoring Pilot Design', 5, 2],
+    [2, 'Co-Lending Partnership Negotiations', 6, 4],
+    [2, 'Alt-Data Credit Scoring Pilot (Live)', 7, 5],
+    [2, 'Predictive Delinquency Model Build', 7, 4],
+    [2, 'First Co-Lending Disbursements', 10, 3],
+    [3, 'Agri Value-Chain Product Launch', 13, 5],
+    [3, 'Expand Alt-Data Scoring (Full Portfolio)', 13, 4],
+    [3, 'Performance Review & Phase Gate', 17, 2],
+    [3, 'Scale BC Network in New Districts', 14, 5],
+  ];
+  const phaseColors = { 1: '#2E74B5', 2: '#ED7D31', 3: '#70AD47' };
+  const months = Array.from({length:18},(_,i)=>'M'+(i+1));
+
+  let html = `<table class="gantt-table">
+    <thead class="gantt-header"><tr>
+      <th>Activity</th>
+      ${months.map(m=>`<th>${m}</th>`).join('')}
+    </tr></thead><tbody>`;
+
+  let lastPhase = 0;
+  tasks.forEach(([phase, label, start, dur]) => {
+    if (phase !== lastPhase) {
+      const phaseNames = {1:'Phase 1: Digital Foundation (M1–6)',2:'Phase 2: Partner & Predict (M6–12)',3:'Phase 3: Specialize & Scale (M12–18)'};
+      const phaseTextColors = {1:'#2E74B5',2:'#ED7D31',3:'#70AD47'};
+      html += `<tr><td colspan="${months.length+1}" class="phase-label" style="color:${phaseTextColors[phase]}">${phaseNames[phase]}</td></tr>`;
+      lastPhase = phase;
+    }
+    html += `<tr class="gantt-row"><td>${label}</td>`;
+    for (let m = 1; m <= 18; m++) {
+      if (m === start) {
+        html += `<td colspan="${dur}" style="padding:4px 2px;">
+          <div class="gantt-bar" style="background:${phaseColors[phase]};animation-delay:${(m/18*0.4)}s">${label.length > 30 ? '' : label}</div>
+        </td>`;
+        m += dur - 1;
+      } else {
+        // Check if this is a phase gate
+        if ((m === 6 || m === 12) && (start > m || start + dur <= m)) {
+          html += `<td></td>`;
+        } else {
+          html += `<td></td>`;
+        }
+      }
+    }
+    html += `</tr>`;
+  });
+
+  // Phase gate row
+  html += `<tr class="gantt-row"><td style="font-weight:700;font-size:11px;color:var(--amber);">⬛ Phase Gates</td>`;
+  for (let m = 1; m <= 18; m++) {
+    if (m === 6) html += `<td><div class="phase-gate">Gate 1<br>Go/No-Go</div></td>`;
+    else if (m === 12) html += `<td><div class="phase-gate">Gate 2<br>Go/No-Go</div></td>`;
+    else html += `<td></td>`;
+  }
+  html += `</tr>`;
+
+  html += `</tbody></table>`;
+  document.getElementById('ganttContainer').innerHTML = html;
+}
+
+// ── LOGBOOK DATA ─────────────────────────────────────────────
+const logEntries = [
+  { num: '01', tool: 'Perplexity', title: 'Problem Identification & Context Setting', sections: 'Section 1.1–1.8', prompt: 'What are the major structural challenges facing mid-sized rural NBFCs in India in 2025–2026? Focus on funding pressures, competition from public sector banks with PSL mandates, and the entry of alt-data digital lenders.', output: 'Synthesized trends from ICRA, FIDC, RBI: RBI April 2025 risk-weight rollback, bank credit to NBFCs stagnant at ₹13.8 lakh crore, 9,000+ NBFCs, 12–15% competitive rate environment, $350B digital lending projection.', usage: 'Directly used in Section 1.1 (Background), Section 1.3 (Evidence-Based Reasoning), Final Problem Statement (Section 1.8).', reflection: 'Strong quantitative anchors. Each data point verified against original sources — ₹13.8 lakh crore confirmed via reference [1]; 9,000+ NBFC count cross-checked with [6]. One unverifiable NBFC market share claim excluded.' },
+  { num: '02', tool: 'Perplexity', title: 'Literature Review — AI in Financial Services & Rural Lending', sections: 'Section 2.1–2.4', prompt: 'Summarize academic and practitioner research on: (1) AI-powered credit scoring for rural thin-file borrowers in India, (2) digital lending growth for MSMEs, (3) strategic challenges for rural NBFCs. Identify research gaps for mid-sized rural NBFCs.', output: 'Machine learning techniques (Random Forest, Gradient Boosting), India Stack/Account Aggregator, MSME cash-flow AI evaluation. Gap identified: most literature focuses on large urban lenders or MFIs — mid-sized rural NBFCs understudied.', usage: 'Structured the four literature review pillars in Section 2. Research gap became key gap statement at end of Section 2.4.', reflection: 'Useful scaffold, but reorganized from AI\'s loose categorization into four coherent thematic pillars. Research gap framing articulated with greater specificity. All cited sources [8][9][10][11] manually verified.' },
+  { num: '03', tool: 'ChatGPT', title: 'Methodology — Prompt Engineering Design', sections: 'Section 3.2–3.3', prompt: 'I am building a strategy project on RuralNidhi NBFC — ₹380 Cr revenue, growth slowdown, margin compression, PSL competition, rising delinquency. Help me structure a 3–5 year strategic reboot using Porter\'s Five Forces and VRIO. Confirm context and suggest analytical workflow.', output: '5-step workflow: environmental scan → internal diagnosis → strategic option generation → option evaluation → roadmap design. Flagged VRIO should focus on relational capital and BC networks.', usage: 'Established analytical workflow formalized in Section 3.3 (Steps 1–5). Shaped prompt engineering approach in Section 3.2.', reflection: 'Deliberate methodology decision — using AI to design analytical structure before using it for analysis. AI\'s 5-step structure aligned with own vision. Step 4 (managerial judgment ranking) added explicitly — AI collapsed evaluation and selection into one step.' },
+  { num: '04', tool: 'ChatGPT', title: 'Competitive Analysis — Porter\'s Five Forces', sections: 'Section 6.1 · Table 3', prompt: 'Using Porter\'s Five Forces, analyze RuralNidhi NBFC — focused on agri/MSME lending in East/Central India. Consider PSL-driven bank threat, 9,000+ NBFC rivalry, fintech entry, price-sensitive buyers, RBI risk-weight rollbacks. Structure as: Force | Intensity | Key Drivers.', output: 'Structured table: Competitive Rivalry (High), Threat of New Entrants (Moderate), Buyer Power (High), Supplier Power (Moderate), Threat of Substitutes (High).', usage: 'Formed basis of Table 3 in Section 6.1. Added "Managerial Interpretation" paragraph and repositioning conclusion.', reflection: 'AI ratings accurate but generic — didn\'t distinguish public banks from fintechs in rivalry. Refined Key Drivers for East/Central India context. Structural unattractiveness insight and repositioning conclusion were own additions.' },
+  { num: '05', tool: 'ChatGPT', title: 'Internal Diagnosis — VRIO Framework', sections: 'Section 6.2 · Table 4', prompt: 'Apply VRIO to RuralNidhi\'s capabilities: (1) 10-yr BC network, (2) embedded rural trust, (3) manual KYC, (4) thin bureau hit-rate, (5) legacy loan portfolio data, (6) agri/MSME domain knowledge. For each: Valuable? Rare? Inimitable? Organized?', output: 'BC network: temporary advantage. Rural trust: sustained but unscalable. Manual KYC: competitive parity/disadvantage. Legacy data: latent advantage (rated "Partially" organized).', usage: 'Populated Table 4 in Section 6.2. Latent advantage finding for legacy data became strategic foundation for Digitize pillar.', reflection: '⭐ AI correction: Legacy data "Organized" rating changed from "Partially" to "Not Organized" — case brief explicitly mentions fragmented systems. This sharpened digitization urgency significantly.' },
+  { num: '06', tool: 'ChatGPT', title: 'Strategic Options Generation', sections: 'Section 6.3', prompt: 'Based on RuralNidhi\'s VRIO (strong relational capital, weak digital infrastructure, manual KYC) and Porter\'s (structurally unattractive market), generate 5 distinct strategic options for a 3–5 year reboot. Range from defensive to transformative. Do not recommend yet.', output: 'Option A: Digital Transformation; B: Co-Lending Partnerships; C: Agri Value-Chain Specialisation; D: Platform Pivot (full ecosystem); E: Managed Decline/Exit.', usage: 'Five options in Section 6.3 directly drawn from this prompt. Basis of Section 6.4 and the Digitize–Partner–Specialize recommendation.', reflection: 'Option D flagged as beyond current capacity — AI overrated it. Option E discarded as value-destructive. A+B+C hybrid was own call — AI did not suggest the synthesis.' },
+  { num: '07', tool: 'ChatGPT', title: 'Challenge Prompt — Stress-Testing Strategic Assumptions', sections: 'Section 3.2 · 6.4 · 8.4', prompt: 'Now critically evaluate the strategic options you just generated for RuralNidhi. Identify: (1) which assumptions are most likely to fail in rural India, (2) where you overestimated feasibility, (3) any claims that could be AI hallucinations. Be direct and self-critical.', output: 'Option A: 50% CAC reduction target may be optimistic given BC dependency. Co-lending (B): assumes bank appetite that may not exist for rural portfolios. Option D called out as capacity-unrealistic. Cost estimates acknowledged as generic.', usage: 'Directly informed risk mitigation plan (Section 8.4), trade-off analysis (6.4), sequencing logic (6.5), and AI Hallucination Safeguards discussion (Section 9.4).', reflection: '🌟 Most valuable prompt in the project. AI flagged BC resistance and co-lending appetite risks not fully articulated. Cost estimate tightened to ₹12–18 Cr after IBEF cross-check — AI\'s ₹8–20 Cr range too wide.' },
+  { num: '08', tool: 'ChatGPT', title: 'Scenario-Based Risk Modelling & Synthetic Dataset', sections: 'Section 5.2 · 6.5 · Table 5', prompt: 'For RuralNidhi, construct a scenario-based risk model for CAC and Delinquency Rate. Provide Conservative, Moderate, Best-Case scenarios for each metric — pre-intervention and post-intervention (18 months). Use rural NBFC industry benchmarks.', output: 'CAC: Current ₹2,500–3,000 → Conservative ₹2,000, Moderate ₹1,500, Best-case ₹1,200. Delinquency: 6–8% → Conservative 5.5%, Moderate 4.5%, Best-case 3.5%. Processing time: 7–10 days → 2–3 days digitally.', usage: 'Populated Table 5 in Section 6.5. Provided calibration basis for cost-benefit logic in Section 7.4.', reflection: '⚠️ Delinquency figures adjusted upward — AI did not account for seasonal income volatility in East/Central India (refs [2][3]). CAC range verified as consistent with IBEF rural NBFC data [11].' },
+  { num: '09', tool: 'ChatGPT', title: 'Implementation Roadmap — Phase Design', sections: 'Section 8 · Tables 7, 8, 9', prompt: 'Design a 12–18 month implementation roadmap for Digitize–Partner–Specialize strategy, structured as: Phase 1 (M1–6): Digital Foundation; Phase 2 (M6–12): Partner & Predict; Phase 3 (M12–18): Specialize & Scale. List activities, owners, success metrics, go/no-go criteria.', output: 'Phased roadmap with activities, owners (CTO, CRO, field managers, BC coordinators), and metrics. Phase 1: e-KYC coverage, system uptime, BC digital enrolment%. Phase 2: co-lending agreements, NPL early warning accuracy. Phase 3: agri vertical loan volume.', usage: 'Structured Tables 7, 8, 9 in Section 8. Phase-gate logic incorporated into Section 8.4.', reflection: '⚠️ AI suggested "Chief Digital Officer" as owner — role doesn\'t exist in RuralNidhi\'s likely structure. Corrected to CRO + Field Ops Head + external tech partners. Success metrics retained but numeric targets tightened to align with Entry 8 scenario model.' },
+  { num: '10', tool: 'ChatGPT', title: 'Ethical Considerations — Bias, Privacy & Hallucination Safeguards', sections: 'Section 9', prompt: 'What are key ethical, legal, and bias risks when deploying AI-powered credit scoring for rural MSME/agri borrowers in India? Address: (1) demographic bias for women/lower-income communities, (2) data privacy under Account Aggregator framework, (3) AI hallucination risks, (4) responsible deployment principles.', output: 'Proxy variable bias (mobile data can encode caste/gender biases), consent challenges for digitally illiterate borrowers, risk of over-reliance on AI scores, need for fairness audits. Human-in-the-loop decisioning as core safeguard.', usage: 'Structured all four sub-sections of Section 9. Human-in-the-loop became formal policy recommendation in Section 9.4.', reflection: 'AI\'s ethics output solid but generic — missed East/Central India\'s specific context: tribal communities, seasonal labour, informal economy. Gender, caste, and regional infrastructure gaps added drawing on [8]. BC-mediated local language consent idea entirely own addition.' },
+];
+
+function initLogbook() {
+  const container = document.getElementById('logbookContainer');
+  logEntries.forEach((e, i) => {
+    const div = document.createElement('div');
+    div.className = 'log-entry';
+    div.innerHTML = `
+      <div class="log-header" onclick="toggleLog(this)">
+        <div class="log-num">${e.num}</div>
+        <div>
+          <div class="log-title">${e.title}</div>
+          <div class="log-section-ref">${e.sections}</div>
+        </div>
+        <span class="log-tool-pill ${e.tool === 'Perplexity' ? 'pill-perplexity' : 'pill-chatgpt'}">${e.tool === 'Perplexity' ? 'Perplexity AI' : 'ChatGPT GPT-4'}</span>
+        <span class="log-chevron">▼</span>
+      </div>
+      <div class="log-body">
+        <div class="log-field"><div class="log-field-label">Prompt</div><div class="log-field-val">${e.prompt}</div></div>
+        <div class="log-field"><div class="log-field-label">AI Output Summary</div><div class="log-field-val">${e.output}</div></div>
+        <div class="log-field"><div class="log-field-label">Usage in Project</div><div class="log-field-val">${e.usage}</div></div>
+        <div class="log-field"><div class="log-field-label">Managerial Reflection</div><div class="reflection-box">${e.reflection}</div></div>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+function toggleLog(header) {
+  const entry = header.parentElement;
+  entry.classList.toggle('open');
+}
+
+initLogbook();
+</script>
+</body>
+</html>
